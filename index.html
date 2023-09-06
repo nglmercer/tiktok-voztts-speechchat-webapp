@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TikTok LIVE Chat Reader (Demo)</title>
+    <title>TikTok LIVE</title>
 
     <meta name="description" content="A chat reader for TikTok LIVE utilizing TikTok-Live-Connector and Socket.IO to forward the data to the client. This demo project uses the unofficial TikTok API to retrieve chat comments, gifts and other events from TikTok LIVE.">
     <meta name="keywords" content="TikTok,Live,Livestream,Chat,Reader,Scraper,Tracker,tiktok.com,broadcast,api,library,node,node.js,javascript">
@@ -16,28 +16,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 
+    <script src="https://code.responsivevoice.org/responsivevoice.js?key=dOCpnhMj"></script>
     <script src="connection.js"></script>
     <script src="app.js"></script>
-
-    <script>
-        function generateOverlay() {
-            let username = $('#uniqueIdInput').val();
-            let url = `/obs.html?username=${username}&showLikes=1&showChats=1&showGifts=1&showFollows=1&showJoins=1&bgColor=rgb(24,23,28)&fontColor=rgb(227,229,235)&fontSize=1.3em`;
-        
-            if(username) {
-                window.open(url, '_blank');
-            } else {
-                alert("Enter username");
-            }
-        }
-    </script>
 </head>
-<body class="zoom-container">
+<body>
     <div class="inputFields">
         <p>Enter the <b>@username </b> :</p>
         <input type="text" id="uniqueIdInput">
         <input type="button" id="connectButton" value="connect">
-        <a href="#" onclick="generateOverlay()">Generate Overlay URL</a>
     </div>
 
     <table class="splitstatetable">
@@ -65,42 +52,48 @@
             </td>
         </tr>
     </table>
-<body class="zoom-container">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voz al leer mensajes</title>
-</head>
-<body>
-    <div>
-        <h1>Chat</h1>
-        <div id="chatContainer"></div>
-        <button id="playButton">Reproducir</button>
-    </div>
-
-    <script>
-        // Obtener referencias a los elementos del DOM
-        const chatContainer = document.getElementById('chatContainer');
-        const playButton = document.getElementById('playButton');
-
-        // Función para agregar mensajes al chat
-        function addChatMessage(message) {
-            let chatMessage = document.createElement('div');
-            chatMessage.textContent = message;
-            chatContainer.appendChild(chatMessage);
-        }
-
-        // Función para leer mensajes en voz alta
-        function readChatMessages() {
-            const chatMessages = Array.from(chatContainer.children).map(element => element.textContent);
-            const speechMsg = new SpeechSynthesisUtterance();
-            speechMsg.text = chatMessages.join('. ');
-            speechSynthesis.speak(speechMsg);
-        }
-
-        // Manejar el clic en el botón de reproducir
-        playButton.addEventListener('click', readChatMessages);
-    </script>
 </body>
+<head>
+    <head>
+        <meta charset="utf-8" />
+        <title>Cambiar voz</title>
+      </head>
+        <button onclick="changeVoice()">Cambiar voz</button>
+        <input type="range" min="0" max="1.5" step="0.1" value="1" onchange="changeVoice()">
+        <select onchange="changeVoice()">
+            <option value="Spanish Latin American Female">Selecciona una voz</option>
+            <option value="UK English Female">UK English Female</option>
+            <option value="UK English Male">UK English Male</option>
+            <option value="US English Female">US English Female</option>
+            <option value="US English Male">US English Male</option>
+            <option value="Spanish Latin American Female">Mujer latinoamericana</option>
+            <option value="Spanish Latin American Male">Hombre latinoamericano</option>
+            <option value="Spanish Female">Mujer española</option>
+            <option value="Latin Male">Latin </option>
+            <option value="Catalan Male">Catalan </option>
+            <option value="Portuguese Female">Mujer Portuguese</option>
+            <option value="Portuguese Male">Hombre Portuguese</option>
+            <option value="French Female">Femme française</option>
+            <option value="French Male">Homme français</option>
+            <option value="German Female">Deutsche Frau</option>
+            <option value="German Male">Deutscher Mann</option>
+            <option value="Italian Female">Donna italiana</option>
+            <option value="Italian Male">Uomo italiano</option>
+            <option value="Greek Female">Ελληνίδα</option>
+            <option value="Greek Male">Έλληνας</option>
+            <option value="Hungarian Female">Magyar nő</option>
+            <option value="Hungarian Male">Magyar férfi</option>
+            <option value="Turkish Female">Türk kadın</option>
+            <option value="Turkish Male">Türk erkek</option>
+            <option value="Russian Female">Русская женщина</option>
+            <option value="Russian Male">Русский мужчина</option>
+            <option value="Dutch Female">Nederlandse vrouw</option>
+            <option value="Dutch Male">Nederlandse man</option>
+            <option value="Swedish Female">Svensk kvinna</option>
+            <option value="Swedish Male">Svensk man</option>
+          </select>
+      <body>
+        <p>actualize la pagina para reiniciar</p>
+      </body>
+</head>
 </html>
