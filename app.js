@@ -7,6 +7,7 @@ const playButton = document.getElementById('playButton');
 let viewerCount = 0;
 let likeCount = 0;
 let diamondsCount = 0;
+let previousLikeCount = 0;
 
 // These settings are defined by obs.html
 if (!window.settings) window.settings = {};
@@ -98,7 +99,8 @@ function addChatItem(color, data, text, summarize) {
     container.animate({
         scrollTop: container[0].scrollHeight
     }, 400);
-    readMessageInVoice(text);
+    hablarMensaje(text);
+    cacheMessage(text);
 }
 
 /**
@@ -142,6 +144,8 @@ function addGiftItem(data) {
         container.append(html);
     }
 
+    soundAlert(data);
+    
     container.stop();
     container.animate({
         scrollTop: container[0].scrollHeight
@@ -159,14 +163,9 @@ connection.on('roomUser', (msg) => {
 
 // like stats
 connection.on('like', (msg) => {
-    if (typeof msg.totalLikeCount === 'number') {
-        likeCount = msg.totalLikeCount;
-        updateRoomStats();
-    }
-
-    if (window.settings.showLikes === "0") return;
-
-    if (typeof msg.likeCount === 'number') {
+  if (typeof msg.totalLikeCount === 'number') {
+    likeCount = msg.totalLikeCount;
+    updateRoomStats();
 
     }
 })
@@ -184,7 +183,7 @@ connection.on('member', (msg) => {
 
     setTimeout(() => {
         joinMsgDelay -= addDelay;
-        addChatItem('#21b2c2', msg, 'joined', true);
+        addChatItem('#21b2c2', msg, 'join', true);
     }, joinMsgDelay);
 })
 
@@ -225,132 +224,105 @@ connection.on('streamEnd', () => {
         }, 30000);
     }
 })
-let messageList = []; // Lista de mensajes
-let isReading = false; // Flag to track if a message is currently being read
-let messageCount = 0; // Counter to keep track of messages
-let repeatedMessageCount = 0; // Counter to keep track of repeated messages
-const forbiddenWords = ['joined','followed the LIVE creator', 'shared the live']; // Palabras que no se deben leer en voz alta
+const palabrasSpam = ['join', 'joined', 'shared', 'LIVE'];
 
-function changeVoice() {
-  const voice = document.querySelector("select").value;
-  const rate = document.querySelector("input[type=range]").value;
-  const volume = 1;
-  responsiveVoice.setDefaultVoice(voice);
+const soundQueue = []; // Lista para almacenar los sonidos pendientes
+let isPlaying = false; // Variable para controlar si se está reproduciendo un sonido o no
 
-  // Check if a message is currently being read
-  if (!isReading) {
-    readNextMessage(rate, volume);
-  }
-}
+let cache = []; // Lista en caché para almacenar los mensajes
 
-function readNextMessage(rate, volume) {
-  if (messageList.length > 0) {
-    isReading = true;
-    const nextMessage = messageList.shift(); // Get and remove the next message from the queue
-    responsiveVoice.speak(nextMessage, null, {
-      rate: rate,
-      volume: volume,
-      onend: function() {
-        isReading = false;
-        readNextMessage(rate, volume); // Continue with the next message
-      }
+function soundAlert(data) {
+  console.log(data.giftName); // Imprimir en la consola
+  const soundFiles = {
+    Rose: 'sounds/kururin.mp3',
+    Doughnut: 'sounds/elded.mp3',
+    Money: 'sounds/elded.mp3',
+    Watermelon: 'sounds/donation.mp3',
+    Hat: 'sounds/gigachad.mp3',
+    Finger: 'sounds/Gatobeso.mp3',
+    DJ: 'sounds/Gatobeso.mp3',
+    Confetti: 'sounds/Gatobeso.mp3',
+    Paper: 'sounds/kururin.mp3',
+    Hello: 'sounds/kururin.mp3',
+    Birthday: 'sounds/kururin.mp3',
+    // Agrega más palabras y nombres de archivos de sonido según tus necesidades
+  };
+  const soundFile = soundFiles[data.giftName];
+  if (soundFile && !isPlaying) {
+    const audio = new Audio(soundFile);
+    audio.isPlaying = true; // Marcar el audio como en reproducción
+    isPlaying = true; // Marcar que se está reproduciendo un sonido
+    audio.addEventListener('ended', function() {
+      audio.isPlaying = false; // Marcar el audio como no en reproducción al finalizar
+      isPlaying = false; // Marcar que no se está reproduciendo un sonido
+      playNextSound(); // Reproducir el siguiente sonido en la lista
     });
-
-    messageCount++;
-    
-    // Check if this is the 50th message
-    if (messageCount % 50 === 0) {
-      // If any of the last 50 messages were repeated, adjust the rate to 2
-      if (repeatedMessageCount > 0) {
-        const doubleSpeedRate = 2;
-        changeVoice(doubleSpeedRate);
-      } else {
-        changeVoice(rate);
-      }
-      
-      // Reset the repeated message count
-      repeatedMessageCount = 0;
-    } else {
-      changeVoice(rate);
+    soundQueue.push(audio); // Agregar el audio a la lista de sonidos pendientes
+    if (soundQueue.length === 1) { // Si es el primer sonido en la lista, reproducirlo inmediatamente
+      audio.play();
     }
   }
 }
 
-function readMessageInVoice(message, voice) {
-  if (!message || message.length < 2) {
-    // El mensaje es nulo o tiene menos de 2 caracteres, no se leerá en voz alta
-    return;
-  }
-
-  const cleanMessage = cleanMessageWithForbiddenWords(message);
-
-  if (cleanMessage.trim() === '') {
-    // El mensaje no contiene caracteres legibles, no se leerá en voz alta
-    return;
-  }
-
-  addMessage(cleanMessage); // Agregar el mensaje a la lista de mensajes
-}
-
-function cleanMessageWithForbiddenWords(message) {
-  let cleanMessage = message;
-
-  // Remover acentuación y símbolos, pero mantener otros caracteres de idiomas diferentes
-  const specialCharsRegex = /[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑüÜ\s\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF]/g;
-  const specialCharsCount = (cleanMessage.match(specialCharsRegex) || []).length;
-
-  if (specialCharsCount > 10) {
-    // Se repiten más de 10 veces los caracteres especiales, se elimina el mensaje
-    cleanMessage = '';
-  } else {
-    // Remover palabras prohibidas
-    for (const forbiddenWord of forbiddenWords) {
-      cleanMessage = cleanMessage.replace(new RegExp(forbiddenWord, 'gi'), '');
+function playNextSound() {
+  if (soundQueue.length > 0 && !isPlaying) {
+    soundQueue.shift(); // Eliminar el primer sonido de la lista
+    if (soundQueue.length > 0) {
+      soundQueue[0].play(); // Reproducir el siguiente sonido en la lista
     }
-
-    // Remover caracteres especiales
-    cleanMessage = cleanMessage.replace(specialCharsRegex, '');
-  }
-
-  return cleanMessage;
-}
-
-function addMessage(message) {
-  messageList.push(message);
-  // Check if the message is a repeat
-  if (messageList.slice(-50, -1).includes(message)) {
-    repeatedMessageCount++;
-  }
-  // Automatically start reading messages when added to the queue
-  if (!isReading) {
-    const rate = calculateSpeechRate(message);
-    changeVoice(rate);
   }
 }
-
-function calculateSpeechRate(message) {
-  // Calculate the desired duration based on the message length
-  const messageLength = message.length;
-  let desiredDuration = 4; // Default duration for shorter messages
-  if (messageLength > 15) {
-    desiredDuration = 12; // Adjusted duration for longer messages
+function cacheMessage(text) {
+    cache.push(text);
+    console.log('Mensaje guardado en la caché:', text); // Imprimir el mensaje en la consola
+    if (cache.length > 100) {
+        cache.shift();
+    }
+}
+function filtros(text) {
+  if (cache.includes(text)) {
+    return false;
   }
-
-  // Calculate the speech rate to achieve the desired duration
-  const rate = messageLength / desiredDuration;
-  return rate;
+  if (palabrasSpam.some(palabra => text.includes(palabra))) {
+    return false;
+  }
+  const words = text.split(' ');
+  for (let i = 0; i < words.length - 1; i++) {
+    if (words[i] === words[i + 1]) {
+      return false;
+    }
+  }
+  // Filtrar emojis y repetición de emojis
+  const emojiRegex = /[\u{1F600}-\u{1F64F}]/gu;
+  if (emojiRegex.test(text)) {
+    return false;
+  }
+  cache.push(text);
+  if (cache.length > 100) {
+    cache.shift();
+  }
+  return true;
 }
 
-window.onload = function() {
-  const voices = responsiveVoice.getVoices();
-  const select = document.querySelector("select");
+let lastSoundTime = 0;
+let lastDataTime = 0;
 
-  for (const voice of voices) {
-    if (voice.lang === "es-ES") {
-      const option = document.createElement("option");
-      option.value = voice.name;
-      option.textContent = voice.name;
-      select.appendChild(option);
+function hablarMensaje(text) {
+  const voiceSelect = document.querySelector("select");
+  const selectedVoice = voiceSelect.value;
+  if (filtros(text)) {
+    const currentTime = Date.now();
+    const messageLength = text.split(' ').length;
+    const delay = messageLength > 5 ? 1000 : 2000;
+    const rate = messageLength > 5 ? 1.5 : 1;
+    if (currentTime - lastSoundTime > delay && currentTime - lastDataTime > delay && !isPlaying) {
+      lastSoundTime = currentTime;
+      responsiveVoice.speak(text, selectedVoice, {rate: rate, onend: function() {
+        console.log('Mensaje leído:', text); // Imprimir el mensaje en la consola después de leerlo
+    }});    } else {
+      setTimeout(() => {
+        hablarMensaje(text);
+      }, 1000);
     }
   }
 }
