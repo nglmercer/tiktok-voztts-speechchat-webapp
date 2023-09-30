@@ -15,16 +15,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=dOCpnhMj"></script>
     <script src="connection.js"></script>
     <script src="app.js"></script>
 </head>
 <body>
     <div class="inputFields">
-        <p>Enter the <b>@username </b> :</p>
-        <input type="text" id="uniqueIdInput">
-        <input type="button" id="connectButton" value="connect">
+        <p>Ingresa el <b>@nombredeusuario</b>:</p>
+        <input type="text" id="uniqueIdInput" value="@melserngl" aria-label="Ingresa tu nombre de usuario">
+        <input type="button" id="connectButton" value="Conectar" aria-label="Conectar">
+    </div>
+
+    <div class="themeButtons">
+        <button onclick="changeTheme('theme-light')" aria-label="Tema Claro">Tema Claro</button>
+        <button onclick="changeTheme('theme-dark')" aria-label="Tema Oscuro">Tema Oscuro</button>
     </div>
 
     <table class="splitstatetable">
@@ -52,48 +56,68 @@
             </td>
         </tr>
     </table>
+    <script>
+        function changeTheme(theme) {
+            document.body.className = theme;
+        }
+    </script>
+    <script>
+        function changeVoice() {
+          const voiceSelect = document.querySelector("select");
+          const selectedVoice = voiceSelect.value;
+          responsiveVoice.setDefaultVoice(selectedVoice);
+        }
+      </script>
+    <select onchange="changeVoice()" aria-label="Seleccionar voz">
+      <option value="Spanish Latin American Female">Voice Select</option>
+      <option value="UK English Female">UK English Female</option>
+      <option value="UK English Male">UK English Male</option>
+      <option value="US English Female">US English Female</option>
+      <option value="US English Male">US English Male</option>
+      <option value="Spanish Latin American Female">Mujer latinoamericana</option>
+      <option value="Spanish Latin American Male">Hombre latinoamericano</option>
+      <option value="Spanish Female">Mujer española</option>
+      <option value="Latin Male">Latin </option>
+      <option value="Catalan Male">Catalan </option>
+      <option value="Portuguese Female">Mujer Portuguese</option>
+      <option value="Portuguese Male">Hombre Portuguese</option>
+      <option value="French Female">Femme française</option>
+      <option value="French Male">Homme français</option>
+      <option value="German Female">Deutsche Frau</option>
+      <option value="German Male">Deutscher Mann</option>
+      <option value="Italian Female">Donna italiana</option>
+      <option value="ItalianMale">Uomo italiano</option>
+      <option value="Greek Female">Ελληνίδα</option>
+      <option value="Greek Male">Έλληνας</option>
+      <option value="Hungarian Female">Magyar nő</option>
+      <option value="Hungarian Male">Magyar férfi</option>
+      <option value="Turkish Female">Türk kadın</option>
+      <option value="Turkish Male">Türk erkek</option>
+      <option value="Russian Female">Русская женщина</option>
+      <option value="Russian Male">Русский мужчина</option>
+      <option value="Dutch Female">Nederlandse vrouw</option>
+      <option value="Dutch Male">Nederlandse man</option>
+      <option value="Swedish Female">Svensk kvinna</option>
+      <option value="Swedish Male">Svensk man</option>
+      <option value="Japanese Female">Japanese Female</option>
+      <option value="Japanese Male">Japanese Male</option>
+    </select>
+    <audio id="soundPlayer" src="" type="audio/mp3"></audio>
+    <audio id="soundPlayer"></audio>
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" aria-label="Control de volumen">
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const volumeSlider = document.getElementById('volumeSlider');
+            const allAudios = Array.from(document.getElementsByTagName('audio'));
+
+            volumeSlider.addEventListener('input', () => {
+                const volume = volumeSlider.value;
+                allAudios.forEach(audio => {
+                    audio.volume = volume;
+                });
+            });
+        });
+    </script>
 </body>
-<head>
-    <head>
-        <meta charset="utf-8" />
-        <title>Cambiar voz</title>
-      </head>
-        <button onclick="changeVoice()">Cambiar voz</button>
-        <input type="range" min="0" max="1.5" step="0.1" value="1" onchange="changeVoice()">
-        <select onchange="changeVoice()">
-            <option value="Spanish Latin American Female">Selecciona una voz</option>
-            <option value="UK English Female">UK English Female</option>
-            <option value="UK English Male">UK English Male</option>
-            <option value="US English Female">US English Female</option>
-            <option value="US English Male">US English Male</option>
-            <option value="Spanish Latin American Female">Mujer latinoamericana</option>
-            <option value="Spanish Latin American Male">Hombre latinoamericano</option>
-            <option value="Spanish Female">Mujer española</option>
-            <option value="Latin Male">Latin </option>
-            <option value="Catalan Male">Catalan </option>
-            <option value="Portuguese Female">Mujer Portuguese</option>
-            <option value="Portuguese Male">Hombre Portuguese</option>
-            <option value="French Female">Femme française</option>
-            <option value="French Male">Homme français</option>
-            <option value="German Female">Deutsche Frau</option>
-            <option value="German Male">Deutscher Mann</option>
-            <option value="Italian Female">Donna italiana</option>
-            <option value="Italian Male">Uomo italiano</option>
-            <option value="Greek Female">Ελληνίδα</option>
-            <option value="Greek Male">Έλληνας</option>
-            <option value="Hungarian Female">Magyar nő</option>
-            <option value="Hungarian Male">Magyar férfi</option>
-            <option value="Turkish Female">Türk kadın</option>
-            <option value="Turkish Male">Türk erkek</option>
-            <option value="Russian Female">Русская женщина</option>
-            <option value="Russian Male">Русский мужчина</option>
-            <option value="Dutch Female">Nederlandse vrouw</option>
-            <option value="Dutch Male">Nederlandse man</option>
-            <option value="Swedish Female">Svensk kvinna</option>
-            <option value="Swedish Male">Svensk man</option>
-          </select>
-      <body>
-        <p>actualize la pagina para reiniciar</p>
-      </body>
-</head>
 </html>
