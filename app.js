@@ -232,19 +232,19 @@ let isPlaying = false; // Variable para controlar si se está reproduciendo un s
 let cache = []; // Lista en caché para almacenar los mensajes
 
 function soundAlert(data) {
-  console.log(data.giftName); // Imprimir en la consola
-  const soundFiles = {
-    Rose: 'sounds/kururin.mp3',
-    Doughnut: 'sounds/elded.mp3',
-    Money: 'sounds/elded.mp3',
-    Watermelon: 'sounds/donation.mp3',
-    Hat: 'sounds/gigachad.mp3',
-    Finger: 'sounds/Gatobeso.mp3',
-    DJ: 'sounds/Gatobeso.mp3',
-    Confetti: 'sounds/Gatobeso.mp3',
-    Paper: 'sounds/kururin.mp3',
-    Hello: 'sounds/kururin.mp3',
-    Birthday: 'sounds/kururin.mp3',
+    console.log(data.giftName); // Imprimir en la consola
+    const soundFiles = {
+      Rose: 'sounds/kururin.mp3',
+      Doughnut: 'sounds/elded.mp3',
+      Money: 'sounds/elded.mp3',
+      Watermelon: 'sounds/donation.mp3',
+      Hat: 'sounds/gigachad.mp3',
+      Finger: 'sounds/Gatobeso.mp3',
+      DJ: 'sounds/Gatobeso.mp3',
+      Confetti: 'sounds/Gatobeso.mp3',
+      Paper: 'sounds/kururin.mp3',
+      Hello: 'sounds/kururin.mp3',
+      Birthday: 'sounds/kururin.mp3',
     // Agrega más palabras y nombres de archivos de sonido según tus necesidades
   };
   const soundFile = soundFiles[data.giftName];
@@ -272,57 +272,73 @@ function playNextSound() {
     }
   }
 }
-function cacheMessage(text) {
-    cache.push(text);
-    console.log('Mensaje guardado en la caché:', text); // Imprimir el mensaje en la consola
-    if (cache.length > 100) {
-        cache.shift();
+function playNextSound() {
+    if (soundQueue.length > 0) {
+      soundQueue.shift(); // Eliminar el primer sonido de la lista
+      if (soundQueue.length > 0) {
+        soundQueue[0].play(); // Reproducir el siguiente sonido en la lista
+      }
     }
-}
-function filtros(text) {
-  if (cache.includes(text)) {
-    return false;
   }
-  if (palabrasSpam.some(palabra => text.includes(palabra))) {
-    return false;
+  function cacheMessage(text) {
+      cache.push(text);
+      console.log('Mensaje guardado en la caché:', text); // Imprimir el mensaje en la consola
+      if (cache.length > 100) {
+          cache.shift();
+      }
   }
-  const words = text.split(' ');
-  for (let i = 0; i < words.length - 1; i++) {
-    if (words[i] === words[i + 1]) {
+  function filtros(text) {
+    if (cache.includes(text)) {
       return false;
     }
+    if (palabrasSpam.some(text => text.includes(palabrasSpam))) {
+      return false;
+    }
+    // Filtrar emojis y repetición de emojis
+    cache.push(text);
+    if (cache.length > 100) {
+      cache.shift();
+    }
+    return true;
   }
-  // Filtrar emojis y repetición de emojis
-  const emojiRegex = /[\u{1F600}-\u{1F64F}]/gu;
-  if (emojiRegex.test(text)) {
-    return false;
-  }
-  cache.push(text);
-  if (cache.length > 100) {
-    cache.shift();
-  }
-  return true;
-}
-
-let lastSoundTime = 0;
-let lastDataTime = 0;
-
-function hablarMensaje(text) {
-  const voiceSelect = document.querySelector("select");
-  const selectedVoice = voiceSelect.value;
-  if (filtros(text)) {
-    const currentTime = Date.now();
-    const messageLength = text.split(' ').length;
-    const delay = messageLength > 5 ? 1000 : 2000;
-    const rate = messageLength > 5 ? 1.5 : 1;
-    if (currentTime - lastSoundTime > delay && currentTime - lastDataTime > delay && !isPlaying) {
-      lastSoundTime = currentTime;
-      responsiveVoice.speak(text, selectedVoice, {rate: rate, onend: function() {
-        console.log('Mensaje leído:', text); // Imprimir el mensaje en la consola después de leerlo
-    }});    } else {
-      setTimeout(() => {
-        hablarMensaje(text);
-      }, 1000);
+  
+  let lastSoundTime = 0;
+  let lastDataTime = 0;
+  
+  function hablarMensaje(text) {
+    const voiceSelect = document.querySelector("select");
+    const selectedVoice = voiceSelect.value;
+    if (text) {
+      const messageLength = text.split(' ').length;
+      if (filtros(text)) {
+        const currentTime = Date.now();
+        const delay = messageLength > 5 ? 1000 : 2000;
+        let rate = 1.0;
+        if (messageLength > 20) {
+          const extraRate = Math.floor((messageLength - 20) / 20) * 0.1;
+          rate = Math.min(1.5, rate + extraRate);
+        }
+        if (responsiveVoice.isPlaying()) {
+          console.log("reproduciendo texto....");
+          setTimeout(hablarMensaje, 100); // Esperar 1 segundo y verificar nuevamente
+          return;
+        }
+        try {
+          if (currentTime - lastSoundTime > delay && currentTime - lastDataTime > delay) {
+            lastSoundTime = currentTime;
+            responsiveVoice.speak(text, selectedVoice, {rate: rate, onend: function() {
+              console.log('Mensaje leído:', text); // Imprimir el mensaje en la consola después de leerlo
+            }});
+          } else {
+            setTimeout(() => {
+              hablarMensaje(text);
+            }, 100);
+          }
+        } catch (error) {
+          console.error('Error al hablar mensaje:', error);
+        }
+      }
+    } else {
+      console.error('Error: no se proporcionó texto para hablar');
     }
   }
-}
