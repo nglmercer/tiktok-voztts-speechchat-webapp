@@ -280,65 +280,66 @@ function playNextSound() {
       }
     }
   }
-  function cacheMessage(text) {
-      cache.push(text);
-      console.log('Mensaje guardado en la caché:', text); // Imprimir el mensaje en la consola
-      if (cache.length > 100) {
-          cache.shift();
+function cacheMessage(text) {
+  cache.push(text);
+  console.log('Mensaje guardado en la caché:', text); // Imprimir el mensaje en la consola
+  if (cache.length > 100) {
+    cache.shift();
+  }
+} 
+
+function filtros(text) {
+  if (cache.includes(text)) {
+    return false;
+  }
+  if (palabrasSpam.some(text => text.includes(palabrasSpam))) {
+    return false;
+  }
+  // Filtrar emojis y repetición de emojis
+  cache.push(text);
+  if (cache.length > 100) {
+    cache.shift();
+  }
+  return true;
+}
+
+let lastSoundTime = 0;
+let lastDataTime = 0;
+
+function hablarMensaje(text) {
+  const voiceSelect = document.querySelector("select");
+  const selectedVoice = voiceSelect.value;
+  if (text) {
+    const messageLength = text.split(' ').length;
+    if (filtros(text)) {
+      const currentTime = Date.now();
+      const delay = messageLength > 5 ? 1000 : 2000;
+      let rate = 1.0;
+      if (messageLength > 20) {
+        const extraRate = Math.floor((messageLength - 20) / 20) * 0.1;
+        rate = Math.min(1.5, rate + extraRate);
       }
-  }
-  function filtros(text) {
-    if (cache.includes(text)) {
-      return false;
-    }
-    if (palabrasSpam.some(text => text.includes(palabrasSpam))) {
-      return false;
-    }
-    // Filtrar emojis y repetición de emojis
-    cache.push(text);
-    if (cache.length > 100) {
-      cache.shift();
-    }
-    return true;
-  }
-  
-  let lastSoundTime = 0;
-  let lastDataTime = 0;
-  
-  function hablarMensaje(text) {
-    const voiceSelect = document.querySelector("select");
-    const selectedVoice = voiceSelect.value;
-    if (text) {
-      const messageLength = text.split(' ').length;
-      if (filtros(text)) {
-        const currentTime = Date.now();
-        const delay = messageLength > 5 ? 1000 : 2000;
-        let rate = 1.0;
-        if (messageLength > 20) {
-          const extraRate = Math.floor((messageLength - 20) / 20) * 0.1;
-          rate = Math.min(1.5, rate + extraRate);
-        }
-        if (responsiveVoice.isPlaying()) {
-          console.log("reproduciendo texto....");
-          setTimeout(hablarMensaje, 100); // Esperar 1 segundo y verificar nuevamente
-          return;
-        }
-        try {
-          if (currentTime - lastSoundTime > delay && currentTime - lastDataTime > delay) {
-            lastSoundTime = currentTime;
-            responsiveVoice.speak(text, selectedVoice, {rate: rate, onend: function() {
-              console.log('Mensaje leído:', text); // Imprimir el mensaje en la consola después de leerlo
-            }});
-          } else {
-            setTimeout(() => {
-              hablarMensaje(text);
-            }, 100);
-          }
-        } catch (error) {
-          console.error('Error al hablar mensaje:', error);
-        }
+      if (responsiveVoice.isPlaying()) {
+        console.log("reproduciendo texto....");
+        setTimeout(hablarMensaje, 100); // Esperar 1 segundo y verificar nuevamente
+        return;
       }
-    } else {
-      console.error('Error: no se proporcionó texto para hablar');
+      try {
+        if (currentTime - lastSoundTime > delay && currentTime - lastDataTime > delay) {
+          lastSoundTime = currentTime;
+          responsiveVoice.speak(text, selectedVoice, {rate: rate, onend: function() {
+            console.log('Mensaje leído:', text); // Imprimir el mensaje en la consola después de leerlo
+          }});
+        } else {
+          setTimeout(() => {
+            hablarMensaje(text);
+          }, 100);
+        }
+      } catch (error) {
+        console.error('Error al hablar mensaje:', error);
+      }
     }
+  } else {
+    console.error('Error: no se proporcionó texto para hablar');
   }
+}
