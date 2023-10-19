@@ -1,14 +1,13 @@
 # TikTok Chat Reader
 
-**SOUND ALERT and command-action TikTok plugin for MixItUpApp // Sonidos de alerta, comandos y acciones de TikTok conectados a MixItUpApp
+**TTS SPEECHCHAT FOR TIKTOK // Sonidos de alerta, comandos y acciones de TikTok 
+
+SOLAMENTE DESCARGUE EL ZIP DESCOMPRIMA E USE INDEX.HTML VERSION SOLO TTS
 
 ## Acerca de
 
 Los mensajes recibidos se utilizan como palabras clave para comandos y otras herramientas.
-
-Ejemplo: Si se envía un mensaje como "donación 1 Rose", aparecerá como "Rose" en el chat. Puedes configurar un sonido para reproducirse cada vez que se mencione o escuche "Rose".
-
-También, TTS se utiliza para leer y escuchar el chat. Esta versión también es utilizada en Android con un empaquetador web.
+TTS se utiliza para leer y escuchar el chat. Esta versión también es utilizada en Android con un empaquetador web.
 
 ## Demo
 
