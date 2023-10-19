@@ -1,5 +1,6 @@
 const { WebcastPushConnection } = require('tiktok-live-connector');
 const { EventEmitter } = require('events');
+const axios = require('axios');
 
 let globalConnectionCount = 0;
 

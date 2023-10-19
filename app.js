@@ -1,15 +1,15 @@
-// This will use the demo backend if you open index.html locally via file://, otherwise your server will be used
+// Este código utilizará el backend de demostración si abres index.html localmente a través de file://, de lo contrario se utilizará tu servidor
 let backendUrl = location.protocol === 'file:' ? "https://tiktok-chat-reader.zerody.one/" : undefined;
 let connection = new TikTokIOConnection(backendUrl);
 const chatContainer = document.getElementById('chatContainer');
 const playButton = document.getElementById('playButton');
-// Counter
+// Contador
 let viewerCount = 0;
 let likeCount = 0;
 let diamondsCount = 0;
 let previousLikeCount = 0;
 
-// These settings are defined by obs.html
+// Estas configuraciones están definidas por obs.html
 if (!window.settings) window.settings = {};
 
 $(document).ready(() => {
@@ -27,14 +27,14 @@ function connect() {
     let uniqueId = window.settings.username || $('#uniqueIdInput').val();
     if (uniqueId !== '') {
 
-        $('#stateText').text('Connecting...');
+        $('#stateText').text('Conectando...');
 
         connection.connect(uniqueId, {
             enableExtendedGiftInfo: true
         }).then(state => {
-            $('#stateText').text(`Connected to roomId ${state.roomId}`);
+            $('#stateText').text(`Conectado a la sala ${state.roomId}`);
 
-            // reset stats
+            // resetear estadísticas
             viewerCount = 0;
             likeCount = 0;
             diamondsCount = 0;
@@ -43,7 +43,7 @@ function connect() {
         }).catch(errorMessage => {
             $('#stateText').text(errorMessage);
 
-            // schedule next try if obs username set
+            // programar próximo intento si se establece el nombre de usuario obs
             if (window.settings.username) {
                 setTimeout(() => {
                     connect(window.settings.username);
@@ -52,17 +52,17 @@ function connect() {
         })
 
     } else {
-        alert('no username entered');
+        alert('no se ingresó nombre de usuario');
     }
 }
 
-// Prevent Cross site scripting (XSS)
+// Prevenir Cross site scripting (XSS)
 function sanitize(text) {
     return text.replace(/</g, '&lt;')
 }
 
 function updateRoomStats() {
-    $('#roomStats').html(`Viewers: <b>${viewerCount.toLocaleString()}</b> Likes: <b>${likeCount.toLocaleString()}</b> Earned Diamonds: <b>${diamondsCount.toLocaleString()}</b>`)
+    $('#roomStats').html(`Espectadores: <b>${viewerCount.toLocaleString()}</b> Likes: <b>${likeCount.toLocaleString()}</b> Diamantes: <b>${diamondsCount.toLocaleString()}</b>`)
 }
 
 function generateUsernameLink(data) {
@@ -74,7 +74,7 @@ function isPendingStreak(data) {
 }
 
 /**
- * Add a new message to the chat container
+ * Agregar un nuevo mensaje al contenedor de chat
  */
 function addChatItem(color, data, text, summarize) {
     let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.chatcontainer');
@@ -104,7 +104,7 @@ function addChatItem(color, data, text, summarize) {
 }
 
 /**
- * Add a new gift to the gift container
+ * Agregar un nuevo regalo al contenedor de regalos
  */
 function addGiftItem(data) {
     let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.giftcontainer');
@@ -125,9 +125,9 @@ function addGiftItem(data) {
                         <tr>
                             <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
                             <td>
-                                <span>Name: <b>${data.giftName}</b> (ID:${data.giftId})<span><br>
-                                <span>Repeat: <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b><span><br>
-                                <span>Cost: <b>${(data.diamondCount * data.repeatCount).toLocaleString()} Diamonds</b><span>
+                                <span>Nombre: <b>${data.giftName}</b> (ID:${data.giftId})<span><br>
+                                <span>Repetir: <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b><span><br>
+                                <span>Costo: <b>${(data.diamondCount * data.repeatCount).toLocaleString()} Diamantes</b><span>
                             </td>
                         </tr>
                     </tabl>
@@ -143,8 +143,6 @@ function addGiftItem(data) {
     } else {
         container.append(html);
     }
-
-    soundAlert(data);
     
     container.stop();
     container.animate({
@@ -152,8 +150,27 @@ function addGiftItem(data) {
     }, 800);
 }
 
+// Cambiar la posición de los contenedores en función de la relación de aspecto
+$(window).on('resize', function() {
+  let aspectRatio = $(window).width() / $(window).height();
+  if (aspectRatio <= 1) {
+      $('.splitchattable').css('flex-direction', 'column');
+      $('.chatcontainer, .giftcontainer').css('float', 'left');
+      $('.chatcontainer, .giftcontainer').css('width', '100%');
+      $('#roomStats').css('text-align', 'left');
+      $('.chatcontainer').css('padding-right', '0px');
+      $('.giftcontainer').css('padding-left', '0px');
+  } else {
+      $('.splitchattable').css('flex-direction', 'row');
+      $('.chatcontainer, .giftcontainer').css('float', 'none');
+      $('.chatcontainer, .giftcontainer').css('width', 'auto');
+      $('#roomStats').css('text-align', 'center');
+      $('.chatcontainer').css('padding-right', '10px');
+      $('.giftcontainer').css('padding-left', '10px');
+  }
+}).resize();
 
-// viewer stats
+// estadísticas de espectadores
 connection.on('roomUser', (msg) => {
     if (typeof msg.viewerCount === 'number') {
         viewerCount = msg.viewerCount;
@@ -161,7 +178,7 @@ connection.on('roomUser', (msg) => {
     }
 })
 
-// like stats
+// estadísticas de likes
 connection.on('like', (msg) => {
   if (typeof msg.totalLikeCount === 'number') {
     likeCount = msg.totalLikeCount;
@@ -170,7 +187,7 @@ connection.on('like', (msg) => {
     }
 })
 
-// Member join
+// Miembro se une
 let joinMsgDelay = 0;
 connection.on('member', (msg) => {
     if (window.settings.showJoins === "0") return;
@@ -183,18 +200,18 @@ connection.on('member', (msg) => {
 
     setTimeout(() => {
         joinMsgDelay -= addDelay;
-        addChatItem('#21b2c2', msg, 'join', true);
+        addChatItem('#21b2c2', msg, 'welcome', true);
     }, joinMsgDelay);
 })
 
-// New chat comment received
+// Nuevo comentario de chat recibido
 connection.on('chat', (msg) => {
     if (window.settings.showChats === "0") return;
 
     addChatItem('', msg, msg.comment);
 })
 
-// New gift received
+// Nuevo regalo recibido
 connection.on('gift', (data) => {
     if (!isPendingStreak(data) && data.diamondCount > 0) {
         diamondsCount += (data.diamondCount * data.repeatCount);
@@ -206,7 +223,7 @@ connection.on('gift', (data) => {
     addGiftItem(data);
 })
 
-// share, follow
+// compartir, seguir
 connection.on('social', (data) => {
     if (window.settings.showFollows === "0") return;
 
@@ -215,75 +232,23 @@ connection.on('social', (data) => {
 })
 
 connection.on('streamEnd', () => {
-    $('#stateText').text('Stream ended.');
+    $('#stateText').text('Transmisión terminada.');
 
-    // schedule next try if obs username set
+    // programar próximo intento si se establece el nombre de usuario obs
     if (window.settings.username) {
         setTimeout(() => {
             connect(window.settings.username);
         }, 30000);
     }
 })
-const palabrasSpam = ['join', 'joined', 'shared', 'LIVE'];
-
+const palabrasSpam = ['join', 'joined', 'shared', 'LIVE', 'welcome'];
 const soundQueue = []; // Lista para almacenar los sonidos pendientes
-let isPlaying = false; // Variable para controlar si se está reproduciendo un sonido o no
-
+let isReading = false; // Variable para controlar si se está leyendo un mensaje o no
 let cache = []; // Lista en caché para almacenar los mensajes
 
-function soundAlert(data) {
-    console.log(data.giftName); // Imprimir en la consola
-    const soundFiles = {
-      Rose: 'sounds/kururin.mp3',
-      Doughnut: 'sounds/elded.mp3',
-      Money: 'sounds/elded.mp3',
-      Watermelon: 'sounds/donation.mp3',
-      Hat: 'sounds/gigachad.mp3',
-      Finger: 'sounds/Gatobeso.mp3',
-      DJ: 'sounds/Gatobeso.mp3',
-      Confetti: 'sounds/Gatobeso.mp3',
-      Paper: 'sounds/kururin.mp3',
-      Hello: 'sounds/kururin.mp3',
-      Birthday: 'sounds/kururin.mp3',
-    // Agrega más palabras y nombres de archivos de sonido según tus necesidades
-  };
-  const soundFile = soundFiles[data.giftName];
-  if (soundFile && !isPlaying) {
-    const audio = new Audio(soundFile);
-    audio.isPlaying = true; // Marcar el audio como en reproducción
-    isPlaying = true; // Marcar que se está reproduciendo un sonido
-    audio.addEventListener('ended', function() {
-      audio.isPlaying = false; // Marcar el audio como no en reproducción al finalizar
-      isPlaying = false; // Marcar que no se está reproduciendo un sonido
-      playNextSound(); // Reproducir el siguiente sonido en la lista
-    });
-    soundQueue.push(audio); // Agregar el audio a la lista de sonidos pendientes
-    if (soundQueue.length === 1) { // Si es el primer sonido en la lista, reproducirlo inmediatamente
-      audio.play();
-    }
-  }
-}
-
-function playNextSound() {
-  if (soundQueue.length > 0 && !isPlaying) {
-    soundQueue.shift(); // Eliminar el primer sonido de la lista
-    if (soundQueue.length > 0) {
-      soundQueue[0].play(); // Reproducir el siguiente sonido en la lista
-    }
-  }
-}
-function playNextSound() {
-    if (soundQueue.length > 0) {
-      soundQueue.shift(); // Eliminar el primer sonido de la lista
-      if (soundQueue.length > 0) {
-        soundQueue[0].play(); // Reproducir el siguiente sonido en la lista
-      }
-    }
-  }
 function cacheMessage(text) {
   cache.push(text);
-  console.log('Mensaje guardado en la caché:', text); // Imprimir el mensaje en la consola
-  if (cache.length > 100) {
+  if (cache.length > 15) {
     cache.shift();
   }
 } 
@@ -295,9 +260,8 @@ function filtros(text) {
   if (palabrasSpam.some(text => text.includes(palabrasSpam))) {
     return false;
   }
-  // Filtrar emojis y repetición de emojis
   cache.push(text);
-  if (cache.length > 100) {
+  if (cache.length > 15) {
     cache.shift();
   }
   return true;
@@ -306,9 +270,29 @@ function filtros(text) {
 let lastSoundTime = 0;
 let lastDataTime = 0;
 
+function leerMensajes() {
+  if (cache.length > 0 && !isReading) {
+    const text = cache.shift();
+    hablarMensaje(text);
+  }
+}
+
+let ultimoMensaje = ""; // Variable para almacenar el último mensaje leído
+
 function hablarMensaje(text) {
   const voiceSelect = document.querySelector("select");
   const selectedVoice = voiceSelect.value;
+  const palabrasIgnorar = ["rose", "Heart", "GG", "@", "followed", "shared", "welcome"];
+
+  if (palabrasIgnorar.some(palabra => palabra.includes(text))) {
+    return;
+  }
+  if (text <= 3 || text > 300) {
+    return;
+  }
+  if (text === ultimoMensaje) { // Si el mensaje a leer es igual al último leído, no lo lea
+    return;
+  }
   if (text) {
     const messageLength = text.split(' ').length;
     if (filtros(text)) {
@@ -320,16 +304,21 @@ function hablarMensaje(text) {
         rate = Math.min(1.5, rate + extraRate);
       }
       if (responsiveVoice.isPlaying()) {
-        console.log("reproduciendo texto....");
-        setTimeout(hablarMensaje, 100); // Esperar 1 segundo y verificar nuevamente
+        setTimeout(hablarMensaje, 100);
         return;
       }
       try {
         if (currentTime - lastSoundTime > delay && currentTime - lastDataTime > delay) {
           lastSoundTime = currentTime;
-          responsiveVoice.speak(text, selectedVoice, {rate: rate, onend: function() {
-            console.log('Mensaje leído:', text); // Imprimir el mensaje en la consola después de leerlo
-          }});
+          ultimoMensaje = text; // Almacenar el último mensaje leído
+          responsiveVoice.speak(text, selectedVoice, {
+            rate: rate,
+            onend: function() {
+              setTimeout(() => {
+                leerMensajes();
+              }, 100);
+            }
+          });
         } else {
           setTimeout(() => {
             hablarMensaje(text);
@@ -339,7 +328,13 @@ function hablarMensaje(text) {
         console.error('Error al hablar mensaje:', error);
       }
     }
-  } else {
-    console.error('Error: no se proporcionó texto para hablar');
   }
 }
+setInterval(leerMensajes, 100); // Añadir intervalo para leer mensajes cada segundo
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'hidden') {
+    responsiveVoice.cancel();
+  } else {
+    leerMensajes();
+  }
+});
