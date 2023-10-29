@@ -45,6 +45,8 @@ Si tienes problemas con Node.js, también puedes abrir el `index.html` desde la 
 Esto utilizará el servidor backend del [sitio de demostración](https://tiktok-chat-reader.zerody.one/), que es suficiente para fines de prueba. Si deseas ofrecerlo a otros o realizar muchas conexiones al mismo tiempo, considera usar tu propio servidor.
 
 ## Captura de pantalla
-
+antiguo
 ![TikTok LIVE Chat Reader (Demo)](https://user-images.githubusercontent.com/59258980/153956504-c585b14b-a50e-43f0-a994-64adcaface2e.png)
 [![English](https://img.shields.io/badge/English--blue.svg)](READMEEN.md) [![Español](https://img.shields.io/badge/Español--red.svg)](README.md)
+nuevo 
+![Screenshot](TIKTOKWEBMINIATURA.jpg)
