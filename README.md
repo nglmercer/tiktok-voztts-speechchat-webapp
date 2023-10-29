@@ -24,6 +24,7 @@ TTS se utiliza para leer y escuchar el chat. Esta versión también es utilizada
 4. **Ingresar @USERNAME y Conectar**: Ingresa tu @USERNAME y establece la conexión.
 
 ## Instalación
+solo ejecute index.html o sige lo siguiente 
 
 Para ejecutar el lector de chat localmente, sigue estos pasos:
 
@@ -46,4 +47,4 @@ Esto utilizará el servidor backend del [sitio de demostración](https://tiktok-
 ## Captura de pantalla
 
 ![TikTok LIVE Chat Reader (Demo)](https://user-images.githubusercontent.com/59258980/153956504-c585b14b-a50e-43f0-a994-64adcaface2e.png)
-
+[![English](https://img.shields.io/badge/English--blue.svg)](READMEEN.md) [![Español](https://img.shields.io/badge/Español--red.svg)](README.md)
