@@ -1,48 +1,61 @@
 body {
     font-family: Arial, Helvetica, sans-serif;
+    font-size: 1.5em;
+    /* Cambiar el tamaño de la fuente a 1.2em */
+    font-weight: bold;
+    /* Hacer la fuente más gruesa */
     min-width: 800px;
     background-color: #f5f5f5;
     color: #333333;
+    /* Estilo del cuerpo de la página */
 }
 
 .dark-theme body {
     background-color: #333333;
     color: #f5f5f5;
+    /* Estilo del cuerpo de la página en el tema oscuro */
 }
 
 h1 {
     font-size: 2em;
     margin-top: 0;
     margin-bottom: 0;
+    /* Estilo de los títulos de nivel 1 */
 }
 
 a {
     color: #58a6ff;
+    /* Estilo de los enlaces */
 }
 
 .head {
     margin-bottom: 15px;
+    /* Estilo de la cabecera */
 }
 
 .subTitle {
     font-size: 1em;
     font-weight: bold;
     margin-top: 10px;
+    /* Estilo de los subtítulos */
 }
 
 .usernamelink {
-    color: #18508f;
+    color: #146fd8;
     text-decoration: none;
+    /* Estilo de los enlaces de los nombres de usuario */
 }
 
 #roomUserText,
 #roomStats {
     width: 100%;
     text-align: right;
+    /* Estilo del texto y las estadísticas de la sala */
 }
 
 #roomStats b {
     margin-right: 20px;
+    /* Estilo de las estadísticas de la sala */
 }
 
 .splitchattable,
@@ -50,39 +63,48 @@ a {
     width: 100%;
     display: flex;
     flex-wrap: wrap;
+    /* Estilo de las tablas divididas */
 }
 
 .splitstatetable td {
     width: 50%;
+    /* Estilo de las celdas de las tablas divididas */
 }
 
 .containerheader {
     text-align: center;
+    /* Estilo del encabezado del contenedor */
 }
 
 .chatcontainer,
 .giftcontainer,
 .eventcontainer {
-    overflow-y: auto;
+    overflow-y: hidden;
     word-wrap: break-word;
+    /* Estilo de los contenedores de chat, regalos y eventos */
 }
 
 .eventcontainer {
     height: calc(100vh - 90px);
+    /* Estilo del contenedor de eventos */
 }
 
 .chatcontainer {
     min-width: 400px;
     max-width: calc(100vw - 430px);
     max-height: calc(100vh - 240px);
+    /* Estilo del contenedor de chat */
 }
 
 .giftcontainer {
     min-width: 400px;
     max-height: calc(100vh - 240px);
+    /* Estilo del contenedor de regalos */
 }
 
-@media (aspect-ratio: 1/1), (aspect-ratio: 9/16), (aspect-ratio: 16/9) {
+@media (aspect-ratio: 1/1),
+(aspect-ratio: 9/16),
+(aspect-ratio: 16/9) {
     .splitchattable {
         flex-direction: column;
     }
@@ -91,27 +113,32 @@ a {
         min-width: 100%;
         max-width: 100%;
     }
+    /* Estilos para pantallas con relación de aspecto 1/1, 9/16 o 16/9 */
 }
 
 .miniprofilepicture {
     height: 30px;
     width: 30px;
+    /* Estilo de las imágenes de perfil pequeñas */
 }
 
 .gifticon {
     height: 50px;
     width: 50px;
     margin-right: 10px;
+    /* Estilo de los iconos de regalo */
 }
 
 body.theme-dark {
     background-color: #000000;
     color: #ffffff;
+    /* Estilo del cuerpo de la página en el tema oscuro */
 }
 
 body.theme-light {
     background-color: #f5f5f5;
     color: #333333;
+    /* Estilo del cuerpo de la página en el tema claro */
 }
 
 .themeButtons button {
@@ -123,8 +150,43 @@ body.theme-light {
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(114, 114, 114, 0);
     cursor: pointer;
+    /* Estilo de los botones de cambio de tema */
 }
 
 .themeButtons button:hover {
     background-color: #1356a3;
+    /* Estilo de los botones de cambio de tema al pasar el cursor por encima */
+}
+
+body.overlay {
+    background-color: #00ff00;
+    color: #ffffff;
+    /* Estilo del cuerpo de la página en el modo de superposición */
+}
+
+.overlay .splitchattable,
+.overlay .giftcontainer,
+.overlay .eventcontainer {
+    opacity: 1;
+    /* Estilo de las tablas divididas, contenedor de regalos y contenedor de eventos en el modo de superposición */
+}
+
+.overlay .chatcontainer,
+.overlay .giftcontainer {
+    opacity: 1;
+    /* Estilo del contenedor de chat y contenedor de regalos en el modo de superposición */
+}
+
+.overlay::-webkit-scrollbar {
+    width: 10px;
+    background-color: #00ff00;
+    /* Estilo de la barra de desplazamiento en el modo de superposición */
+}
+
+.overlay::-webkit-scrollbar-thumb {
+    background-color: #00ff00;
+    overflow-y: hidden;
+    background-color: green;
+    color: #f5f5f5;
+    /* Estilo del pulgar de la barra de desplazamiento en el modo de superposición */
 }

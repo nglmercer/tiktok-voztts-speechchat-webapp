@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,13 +13,13 @@
 
     <link rel="stylesheet" href="style.css">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    <script src="https://code.responsivevoice.org/responsivevoice.js?key=dOCpnhMj"></script>
     <script src="connection.js"></script>
     <script src="app.js"></script>
 </head>
+
 <body>
     <div class="inputFields">
         <p>Ingresa el <b>@nombredeusuario</b>:</p>
@@ -29,17 +30,23 @@
     <div class="themeButtons">
         <button onclick="changeTheme('theme-light')">Tema Claro</button>
         <button onclick="changeTheme('theme-dark')">Tema Oscuro</button>
+        <button onclick="changeTheme('overlay')">overlay</button>
     </div>
 
+    <head>
+        <script src=tmi.min.js></script>
+        <script src=TTSmain.js></script>
+    </head>
+
+    <body>
+        <input id="channel" type="text" placeholder="channel name goes here"></input> <input id="channel-button" value="GO" type="button"></input>
+        <!--br/-->
+        <input id="skip-button" type="button" value="SKIP"></input> <br/>
+        <div id="chatbox"></div>
+    </body>
     <table class="splitstatetable">
-        <tr>
-            <td>
-                <pre id="stateText"></pre>
-            </td>
-            <td>
-                <div id="roomStats"></div>
-            </td>
-        </tr>
+        <div id="stateText"></div>
+        <div id="roomStats"></div>
     </table>
 
     <div class="splitchattable">
@@ -55,57 +62,10 @@
         function changeTheme(theme) {
             document.body.className = theme;
         }
+        document.body.appendChild(voiceSelect);
     </script>
-    <script>
-        function changeVoice() {
-          const voiceSelect = document.querySelector("select");
-          const selectedVoice = voiceSelect.value;
-          responsiveVoice.setDefaultVoice(selectedVoice);
-        }
-      
-        // Wait for the DOM to load
-        document.addEventListener("DOMContentLoaded", function() {
-          //Populate voice selection dropdown
-          var voicelist = responsiveVoice.getVoices();
-          var vselect = document.querySelector("select");
-          voicelist.forEach(function(voice) {
-            vselect.add(new Option(voice.name, voice.name));
-          });
-      
-          // Establecer la voz predeterminada en español
-          responsiveVoice.setDefaultVoice("Spanish Latin American Female");
-        });
-      </script>
-      
-      <audio id="soundPlayer" src="" type="audio/mp3"></audio>
-      
-      <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1" aria-label="Control de volumen">
-      
-      <script>
-        window.addEventListener('DOMContentLoaded', () => {
-          const volumeSlider = document.getElementById('volumeSlider');
-          const allAudios = Array.from(document.getElementsByTagName('audio'));
-      
-          volumeSlider.addEventListener('input', () => {
-            const volume = volumeSlider.value;
-            allAudios.forEach(audio => {
-              audio.volume = volume;
-            });
-          });
-        });
-      </script>
-      
-      <script>
-        // Imprimir contenido de la tabla en la consola
-        var chatTable = document.querySelector('.splitchattable');
-        var chatContent = chatTable.textContent;
-        console.log(chatContent);
-      </script>
-      <select onchange="changeVoice()" aria-label="Seleccionar voz">
-        <option value="Spanish Latin American Female" selected>Mujer latinoamericana</option>
-        <option value="Spanish Latin American Male">Hombre latinoamericano</option>
-        <option value="Spanish Female">Mujer española</option>
-        <option value="Spanish Male">Hombre español</option>
-      </select>
+    <audio id="audio" controls autoplay></audio> <br/>
+    <audio id="soundPlayer" src="" type="audio/mp3"></audio>
 </body>
+
 </html>
