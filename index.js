@@ -548,6 +548,22 @@ const readMessages = [];
 
 async function fetchAudio(txt, voice) {
     try {
+        const hasAlphabet = /[a-zA-Z]/.test(txt);
+        let language = '';
+
+        if (hasAlphabet) {
+            language = detectLanguage(txt); // Detectar el idioma del texto
+        } else {
+            // Asignar idioma basado en el tipo de escritura
+            if (/[ぁ-んァ-ン]/.test(txt)) {
+                language = 'Mizuki'; // Japonés
+            } else if (/[가-힣]/.test(txt)) {
+                language = 'Seoyeon'; // Coreano
+            } else {
+                language = voiceSelect.value; // Usar la voz seleccionada por defecto
+            }
+            // Puedes agregar más idiomas y patrones de escritura según tus necesidades
+        }
 
         const selectedVoice = selectVoice(language);
         const resp = await fetch(TTS_API_ENDPOINT + makeParameters({ voice: selectedVoice, text: txt }));
@@ -587,11 +603,7 @@ function makeParameters(params) {
 }
 
 function skipAudio() {
-    if (audio.paused) {
-        console.error("Skipped player while paused");
-        return;
-    }
-
+    if (audio.paused) return console.error("skipped player while paused");
     if (audioqueue.isEmpty()) {
         isPlaying = false;
         audio.pause();
@@ -600,9 +612,9 @@ function skipAudio() {
         audio.src = audioqueue.dequeue();
         audio.load();
         audio.play();
+        audioqueue.dequeue();
     }
 }
-
 
 function kickstartPlayer() {
     if (audioqueue.isEmpty()) return isPlaying = false;
