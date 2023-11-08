@@ -1,16 +1,18 @@
-// Este código utilizará el backend de demostración si abres index.html localmente a través de file://, de lo contrario se utilizará tu servidor
+// This will use the demo backend if you open index.html locally via file://, otherwise your server will be used
 let backendUrl = location.protocol === 'file:' ? "https://tiktok-chat-reader.zerody.one/" : undefined;
 let connection = new TikTokIOConnection(backendUrl);
 const chatContainer = document.getElementById('chatContainer');
 const playButton = document.getElementById('playButton');
-// Contador
+// Counter
+
 let viewerCount = 0;
 let likeCount = 0;
 let diamondsCount = 0;
 let previousLikeCount = 0;
 
-// Estas configuraciones están definidas por obs.html
+// These settings are defined by obs.html
 if (!window.settings) window.settings = {};
+
 
 $(document).ready(() => {
     $('#connectButton').click(connect);
@@ -56,7 +58,8 @@ function connect() {
     }
 }
 
-// Prevenir Cross site scripting (XSS)
+
+// Prevent Cross site scripting (XSS)
 function sanitize(text) {
     return text.replace(/</g, '&lt;')
 }
@@ -74,7 +77,7 @@ function isPendingStreak(data) {
 }
 
 /**
- * Agregar un nuevo mensaje al contenedor de chat
+ * Add a new message to the chat container
  */
 function addChatItem(color, data, text, summarize) {
     let container = location.href.includes('obs.html') ? $('.eventcontainer') : $('.chatcontainer');
@@ -86,24 +89,38 @@ function addChatItem(color, data, text, summarize) {
     container.find('.temporary').remove();;
 
     container.append(`
-        <div class=${summarize ? 'temporary' : 'static'}>
-            <img class="miniprofilepicture" src="${data.profilePictureUrl}">
-            <span>
-                <b>${generateUsernameLink(data)}:</b> 
-                <span style="color:${color}">${sanitize(text)}</span>
-            </span>
-        </div>
-    `);
+    <div class=${summarize ? 'temporary' : 'static'}>
+      <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+      <span>
+        <b>${generateUsernameLink(data)}:</b>
+        <span style="color:${color}">${sanitize(text)}</span>
+      </span>
+    </div>
+  `);
+
+    const specialChars = /[#$%^&*()/,.?":{}|<>]/;
+    const startsWithSpecialChar = specialChars.test(text.charAt(0));
+    const messagePrefix = startsWithSpecialChar ? "!" : "";
+    const messageSuffix = summarize ? "" : ` ${text}`;
+
+    // Modificación para eliminar o reemplazar los caracteres especiales
+    let cleanedText = text;
+    if (startsWithSpecialChar) {
+        cleanedText = text.replace(/[@#$%^&*()/,.?":{}|<>]/, ""); // Elimina o reemplaza los caracteres especiales al comienzo del texto con "!"
+    }
+
+    const message = messagePrefix + (cleanedText.length > 50 ? `${data.uniqueId} dice ${messageSuffix}` : cleanedText);
+
+    enviarMensaje(message);
 
     container.stop();
     container.animate({
         scrollTop: container[0].scrollHeight
     }, 400);
-    leerMensajes(text);
     cacheMessage(text);
 }
-
-/**
+// Resto del código...
+/** ID[${data.giftId}] id regalo
  * Agregar un nuevo regalo al contenedor de regalos
  */
 function addGiftItem(data) {
@@ -116,25 +133,23 @@ function addGiftItem(data) {
     let streakId = data.userId.toString() + '_' + data.giftId;
 
     let html = `
-        <div data-streakid=${isPendingStreak(data) ? streakId : ''}>
-            <img class="miniprofilepicture" src="${data.profilePictureUrl}">
-            <span>
-                <b>${generateUsernameLink(data)}:</b> <span>${data.describe}</span><br>
-                <div>
-                    <table>
-                        <tr>
-                            <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
-                            <td>
-                                <span>Nombre: <b>${data.giftName}</b> (ID:${data.giftId})<span><br>
-                                <span>Repetir: <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b><span><br>
-                                <span>Costo: <b>${(data.diamondCount * data.repeatCount).toLocaleString()} Diamantes</b><span>
-                            </td>
-                        </tr>
-                    </tabl>
-                </div>
-            </span>
-        </div>
-    `;
+      <div data-streakid=${isPendingStreak(data) ? streakId : ''}>
+          <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+          <span>
+              <b>${generateUsernameLink(data)}:</b> <span><span style="color: ${data.giftName ? 'purple' : 'black'}">${data.giftName}</span></span></span><br>
+              <div>
+                  <table>
+                      <tr>
+                          <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
+                          <td>
+                              <span><b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()} : ${(data.diamondCount * data.repeatCount).toLocaleString()} Diamantes </b><span><br>
+                          </td>
+                      </tr>
+                  </tabl>
+              </div>
+          </span>
+      </div>
+  `;
 
     let existingStreakItem = container.find(`[data-streakid='${streakId}']`);
 
@@ -143,6 +158,8 @@ function addGiftItem(data) {
     } else {
         container.append(html);
     }
+    enviarMensaje(data.giftName, "");
+    obtenerComandosYEnviarMensaje(data.giftName, "");
 
     container.stop();
     container.animate({
@@ -150,27 +167,7 @@ function addGiftItem(data) {
     }, 800);
 }
 
-// Cambiar la posición de los contenedores en función de la relación de aspecto
-$(window).on('resize', function() {
-    let aspectRatio = $(window).width() / $(window).height();
-    if (aspectRatio <= 1) {
-        $('.splitchattable').css('flex-direction', 'column');
-        $('.chatcontainer, .giftcontainer').css('float', 'left');
-        $('.chatcontainer, .giftcontainer').css('width', '100%');
-        $('#roomStats').css('text-align', 'left');
-        $('.chatcontainer').css('padding-right', '0px');
-        $('.giftcontainer').css('padding-left', '0px');
-    } else {
-        $('.splitchattable').css('flex-direction', 'row');
-        $('.chatcontainer, .giftcontainer').css('float', 'none');
-        $('.chatcontainer, .giftcontainer').css('width', 'auto');
-        $('#roomStats').css('text-align', 'center');
-        $('.chatcontainer').css('padding-right', '10px');
-        $('.giftcontainer').css('padding-left', '10px');
-    }
-}).resize();
-
-// estadísticas de espectadores
+// viewer stats
 connection.on('roomUser', (msg) => {
     if (typeof msg.viewerCount === 'number') {
         viewerCount = msg.viewerCount;
@@ -178,16 +175,22 @@ connection.on('roomUser', (msg) => {
     }
 })
 
-// estadísticas de likes
+// like stats
 connection.on('like', (msg) => {
     if (typeof msg.totalLikeCount === 'number') {
         likeCount = msg.totalLikeCount;
         updateRoomStats();
 
+        // Check if the like count has reached a multiple of 10, 100, 1000, etc.
+        if (likeCount % 500 === 0 && likeCount !== previousLikeCount) {
+            previousLikeCount = likeCount;
+            const likeMessage = `${likeCount} likes.`;
+            enviarMensaje(likeMessage);
+        }
     }
 })
 
-// Miembro se une
+// Member join
 let joinMsgDelay = 0;
 connection.on('member', (msg) => {
     if (window.settings.showJoins === "0") return;
@@ -200,18 +203,18 @@ connection.on('member', (msg) => {
 
     setTimeout(() => {
         joinMsgDelay -= addDelay;
-        addChatItem('#21b2c2', msg, 'welcome', true);
+        addChatItem('#CDA434', msg, 'welcome', true);
     }, joinMsgDelay);
 })
 
-// Nuevo comentario de chat recibido
+// New chat comment received
 connection.on('chat', (msg) => {
     if (window.settings.showChats === "0") return;
 
     addChatItem('', msg, msg.comment);
 })
 
-// Nuevo regalo recibido
+// New gift received
 connection.on('gift', (data) => {
     if (!isPendingStreak(data) && data.diamondCount > 0) {
         diamondsCount += (data.diamondCount * data.repeatCount);
@@ -223,24 +226,98 @@ connection.on('gift', (data) => {
     addGiftItem(data);
 })
 
-// compartir, seguir
+// share, follow
 connection.on('social', (data) => {
     if (window.settings.showFollows === "0") return;
 
-    let color = data.displayType.includes('follow') ? '#ff005e' : '#2fb816';
+    let color = data.displayType.includes('follow') ? '#CDA434' : '##CDA434';
+    if (data.displayType.includes('follow')) {
+        data.label = `${data.uniqueId} Te sigue`;
+    }
+
     addChatItem(color, data, data.label.replace('{0:user}', ''));
 })
 
 connection.on('streamEnd', () => {
     $('#stateText').text('Transmisión terminada.');
 
-    // programar próximo intento si se establece el nombre de usuario obs
+    // schedule next try if obs username set
     if (window.settings.username) {
         setTimeout(() => {
             connect(window.settings.username);
         }, 30000);
     }
 })
+
+function obtenerComandosYEnviarMensaje(giftname, message = "", isGift = false) {
+    const pageSize = 100; // Cantidad de comandos a devolver por página
+    let skip = 0; // Comenzar desde el primer comando
+
+    const listaComandos = [];
+
+    function obtenerPaginaDeComandos() {
+        fetch(`http://localhost:8911/api/v2/commands?skip=${skip}&pageSize=${pageSize}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!Array.isArray(data.Commands)) {
+                    throw new Error('La respuesta no contiene un array de comandos');
+                }
+
+                const comandos = data.Commands;
+                listaComandos.push(...comandos);
+
+                // Si hay más comandos, pasar a la siguiente página
+                if (comandos.length === pageSize) {
+                    skip += pageSize;
+                    obtenerPaginaDeComandos();
+                } else {
+                    // Se han obtenido todos los comandos, imprimirlos
+                    listaComandos.forEach(cmd => {});
+
+                    // Buscar el ID del comando según el nombre
+                    const comandosEncontrados = listaComandos.filter(cmd => cmd.Name.includes(giftname));
+                    if (comandosEncontrados.length === 0) {
+                        console.error(`No se encontró ningún comando con el nombre que contiene: ${giftname}`);
+                        return; // Salir de la función si no se encuentran comandos
+                    }
+
+                    // Enviar el mensaje con el ID de cada comando encontrado
+                    const chat_message = {
+                        Message: message,
+                        Platform: "Twitch",
+                        SendAsStreamer: true
+                    };
+
+                    comandosEncontrados.forEach(comando => {
+                        fetch(`http://localhost:8911/api/commands/${comando.ID}`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(chat_message)
+                            })
+                            .then(function(response) {
+                                if (response.ok) {
+                                    // La solicitud se realizó correctamente
+                                    // Hacer algo con la respuesta si es necesario
+                                } else {
+                                    throw new Error('Error al enviar el mensaje');
+                                }
+                            })
+                            .catch(function(error) {
+                                console.error('Error al enviar el mensaje:', error);
+                            });
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error al obtener los comandos:', error);
+            });
+    }
+
+    obtenerPaginaDeComandos(); // Llamada a la función para iniciar la secuencia
+}
+
 var audio, chatbox, button, channelInput, audioqueue, isPlaying, add, client, skip;
 
 const TTS_API_ENDPOINT = 'https://api.streamelements.com/kappa/v2/speech?'; // unprotected API - use with caution
@@ -474,7 +551,6 @@ var VOICE_LIST = {
     "An (Vietnamese)": "An",
 };
 const VOICE_LIST_ALT = Object.keys(VOICE_LIST).map(k => VOICE_LIST[k]);
-const palabrasSpam = ['join', 'joined', 'shared', 'LIVE', 'welcome'];
 var voiceSelect = document.createElement('select');
 Object.keys(VOICE_LIST).forEach(function(key) {
     var option = document.createElement('option');
@@ -489,6 +565,60 @@ voiceSelect.addEventListener('change', function() {
 let isReading = false;
 let cache = [];
 let lastText = "";
+let lastComment = '';
+let lastCommentTime = 0;
+const filteredWords = JSON.parse(localStorage.getItem('filteredWords')) || [];
+const palabrasSpam = JSON.parse(localStorage.getItem('palabrasSpam')) || [];
+
+
+function enviarMensaje(message) {
+    if (shouldSendMessage(message)) {
+        if (!containsFilteredWords(message)) {
+            // Enviar el mensaje
+            fetch("http://localhost:8911/api/v2/chat/message", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ "Message": message, "Platform": "Twitch", "SendAsStreamer": true })
+                })
+                .then(function(response) {
+                    if (response.ok) {
+                        leerMensajes();
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error al enviar el mensaje:', error);
+                });
+
+            lastComment = message;
+            lastCommentTime = Date.now();
+        }
+    }
+}
+
+function shouldSendMessage(message) {
+    return (
+        message !== lastComment &&
+        !containsFilteredWords(message)
+    );
+
+}
+
+function containsFilteredWords(message) {
+    const filteredWords = JSON.parse(localStorage.getItem('filteredWords')) || [];
+    return filteredWords.some(word => message.includes(word));
+}
+
+function cacheMessage(text) {
+    if (text.length >= 3 && text.length <= 400 && text !== lastText) {
+        cache.push(text);
+        lastText = text;
+    }
+    if (cache.length > 15) {
+        cache.shift();
+    }
+}
 
 class Queue {
     constructor() {
@@ -535,19 +665,28 @@ function filtros(text) {
 function leerMensajes() {
     if (cache.length > 0 && !isReading) {
         const text = cache.shift();
-        fetchAudio(text);
+        const nextText = cache[0];
+
+        // Comprobar si el mensaje es igual a los 5 anteriores
+        const similarMessages = readMessages.filter(msg => msg === text).length;
+        const isRepeated = similarMessages >= 5;
+
+        if (!isRepeated && text !== nextText) {
+            fetchAudio(text);
+        }
     }
 }
 
-
 const readMessages = [];
 
-async function fetchAudio(txt) {
-    const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-    await delay(400);
-
+async function fetchAudio(txt, voice) {
     try {
-        const resp = await fetch(TTS_API_ENDPOINT + makeParameters({ voice: voiceSelect.value, text: txt }));
+        if (!filtros(txt)) {
+            return;
+        }
+
+        const selectedVoice = selectVoice(language);
+        const resp = await fetch(TTS_API_ENDPOINT + makeParameters({ voice: selectedVoice, text: txt }));
         if (resp.status !== 200) {
             console.error("Mensaje incorrecto");
             return;
@@ -565,10 +704,17 @@ async function fetchAudio(txt) {
         }
 
         // Elimina el mensaje de cache una vez que se ha reproducido
-        setTimeout(() => {
-            URL.revokeObjectURL(blobUrl);
-        }, 10000); // Cambia el valor 10000 por el tiempo en milisegundos que deseas que dure el archivo temporal
+        const interval = setInterval(() => {
+            if (audio.ended) {
+                clearInterval(interval);
+                URL.revokeObjectURL(blobUrl);
+            }
+        }, 200); // Verifica cada segundo si el audio ha terminado de reproducirse
 
+        readMessages.push(txt);
+        if (readMessages.length > 5) {
+            readMessages.shift(); // Si hay más de 5 mensajes, elimina el más antiguo
+        }
     } catch (error) {
         console.error("Error:", error);
     }
@@ -581,7 +727,6 @@ function makeParameters(params) {
 }
 
 function skipAudio() {
-    if (audio.paused) return console.error("skipped player while paused");
     if (audioqueue.isEmpty()) {
         isPlaying = false;
         audio.pause();
@@ -590,19 +735,22 @@ function skipAudio() {
         audio.src = audioqueue.dequeue();
         audio.load();
         audio.play();
-        audioqueue.dequeue();
     }
 }
 
 function kickstartPlayer() {
-    if (audioqueue.isEmpty()) return isPlaying = false;
-    if (!audio.paused) return console.error("started player while running");
-    isPlaying = true;
-    audio.src = audioqueue.dequeue();
-    audio.load();
-    audio.play();
-    audioqueue.dequeue();
-    readMessages.shift();
+    if (audioqueue.isEmpty()) {
+        isPlaying = false;
+        audio.pause();
+        leerMensajes(); // Leer el próximo mensaje
+    } else {
+        isPlaying = true;
+        audio.src = audioqueue.dequeue();
+        audio.load();
+        audio.play();
+        audioqueue.dequeue();
+        readMessages.shift();
+    }
 }
 
 window.onload = async function() {
@@ -611,6 +759,7 @@ window.onload = async function() {
         skip = document.getElementById("skip-button");
         isPlaying = false;
         audioqueue = new Queue();
+        leerMensajes();
 
         if (skip) {
             skip.onclick = skipAudio;
@@ -623,8 +772,6 @@ window.onload = async function() {
         } else {
             console.error("Error: audio is undefined");
         }
-
-        leerMensajes();
 
     } catch (error) {
         console.error("Error:", error);
