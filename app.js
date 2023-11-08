@@ -1,16 +1,17 @@
-// Este código utilizará el backend de demostración si abres index.html localmente a través de file://, de lo contrario se utilizará tu servidor
+// This will use the demo backend if you open index.html locally via file://, otherwise your server will be used
 let backendUrl = location.protocol === 'file:' ? "https://tiktok-chat-reader.zerody.one/" : undefined;
 let connection = new TikTokIOConnection(backendUrl);
 const chatContainer = document.getElementById('chatContainer');
 const playButton = document.getElementById('playButton');
-// Contador
+// Counter
 let viewerCount = 0;
 let likeCount = 0;
 let diamondsCount = 0;
 let previousLikeCount = 0;
 
-// Estas configuraciones están definidas por obs.html
+// These settings are defined by obs.html
 if (!window.settings) window.settings = {};
+
 
 $(document).ready(() => {
     $('#connectButton').click(connect);
@@ -32,7 +33,7 @@ function connect() {
         connection.connect(uniqueId, {
             enableExtendedGiftInfo: true
         }).then(state => {
-            $('#stateText').text(`numero de sala ${state.roomId}`);
+            $('#stateText').text(`Conectado a la sala ${state.roomId}`);
 
             // resetear estadísticas
             viewerCount = 0;
@@ -56,7 +57,7 @@ function connect() {
     }
 }
 
-// Prevenir Cross site scripting (XSS)
+// Prevent Cross site scripting (XSS)
 function sanitize(text) {
     return text.replace(/</g, '&lt;')
 }
@@ -116,25 +117,23 @@ function addGiftItem(data) {
     let streakId = data.userId.toString() + '_' + data.giftId;
 
     let html = `
-        <div data-streakid=${isPendingStreak(data) ? streakId : ''}>
-            <img class="miniprofilepicture" src="${data.profilePictureUrl}">
-            <span>
-                <b>${generateUsernameLink(data)}:</b> <span>${data.describe}</span><br>
-                <div>
-                    <table>
-                        <tr>
-                            <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
-                            <td>
-                                <span>Nombre: <b>${data.giftName}</b> (ID:${data.giftId})<span><br>
-                                <span>Combo: <b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()}</b><span><br>
-                                <span>Monto: <b>${(data.diamondCount * data.repeatCount).toLocaleString()} Diamantes</b><span>
-                            </td>
-                        </tr>
-                    </tabl>
-                </div>
-            </span>
-        </div>
-    `;
+      <div data-streakid=${isPendingStreak(data) ? streakId : ''}>
+          <img class="miniprofilepicture" src="${data.profilePictureUrl}">
+          <span>
+              <b>${generateUsernameLink(data)}:</b> <span><span style="color: ${data.giftName ? 'purple' : 'black'}">${data.giftName}</span></span></span><br>
+              <div>
+                  <table>
+                      <tr>
+                          <td><img class="gifticon" src="${data.giftPictureUrl}"></td>
+                          <td>
+                              <span><b style="${isPendingStreak(data) ? 'color:red' : ''}">x${data.repeatCount.toLocaleString()} : ${(data.diamondCount * data.repeatCount).toLocaleString()} Diamantes </b><span><br>
+                          </td>
+                      </tr>
+                  </tabl>
+              </div>
+          </span>
+      </div>
+  `;
 
     let existingStreakItem = container.find(`[data-streakid='${streakId}']`);
 
@@ -178,12 +177,18 @@ connection.on('roomUser', (msg) => {
     }
 })
 
-// estadísticas de likes
+// like stats
 connection.on('like', (msg) => {
     if (typeof msg.totalLikeCount === 'number') {
         likeCount = msg.totalLikeCount;
         updateRoomStats();
 
+        // Check if the like count has reached a multiple of 10, 100, 1000, etc.
+        if (likeCount % 500 === 0 && likeCount !== previousLikeCount) {
+            previousLikeCount = likeCount;
+            const likeMessage = `${likeCount} likes.`;
+            cacheMessage(likeMessage);
+        }
     }
 })
 
@@ -200,7 +205,7 @@ connection.on('member', (msg) => {
 
     setTimeout(() => {
         joinMsgDelay -= addDelay;
-        addChatItem('#21b2c2', msg, 'welcome', true);
+        addChatItem('#CDA434', msg, 'welcome', true);
     }, joinMsgDelay);
 })
 
@@ -231,6 +236,9 @@ connection.on('social', (data) => {
     if (data.displayType.includes('follow')) {
         data.label = `${data.uniqueId} Te sigue`;
     }
+    if (data.displayType.includes('shared')) {
+        data.label = `${data.uniqueId} compartio el directo`;
+    }
 
     addChatItem(color, data, data.label.replace('{0:user}', ''));
 })
@@ -238,13 +246,14 @@ connection.on('social', (data) => {
 connection.on('streamEnd', () => {
     $('#stateText').text('Transmisión terminada.');
 
-    // programar próximo intento si se establece el nombre de usuario obs
+    // schedule next try if obs username set
     if (window.settings.username) {
         setTimeout(() => {
             connect(window.settings.username);
         }, 30000);
     }
 })
+
 var audio, chatbox, button, channelInput, audioqueue, isPlaying, add, client, skip;
 
 const TTS_API_ENDPOINT = 'https://api.streamelements.com/kappa/v2/speech?'; // unprotected API - use with caution
@@ -478,7 +487,7 @@ var VOICE_LIST = {
     "An (Vietnamese)": "An",
 };
 const VOICE_LIST_ALT = Object.keys(VOICE_LIST).map(k => VOICE_LIST[k]);
-const palabrasSpam = ['join', 'joined', 'shared', 'LIVE', 'welcome'];
+const palabrasSpam = ['join', 'joined'];
 var voiceSelect = document.createElement('select');
 Object.keys(VOICE_LIST).forEach(function(key) {
     var option = document.createElement('option');
@@ -543,12 +552,10 @@ function leerMensajes() {
     }
 }
 
-
 const readMessages = [];
 
 async function fetchAudio(txt, voice) {
     try {
-
         const selectedVoice = selectVoice(language);
         const resp = await fetch(TTS_API_ENDPOINT + makeParameters({ voice: selectedVoice, text: txt }));
         if (resp.status !== 200) {
@@ -603,7 +610,6 @@ function skipAudio() {
     }
 }
 
-
 function kickstartPlayer() {
     if (audioqueue.isEmpty()) return isPlaying = false;
     if (!audio.paused) return console.error("started player while running");
@@ -634,7 +640,7 @@ window.onload = async function() {
             console.error("Error: audio is undefined");
         }
 
-        leerMensajes();
+        setInterval(leerMensajes, 1000); // Leer mensajes cada segundo
 
     } catch (error) {
         console.error("Error:", error);

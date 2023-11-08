@@ -108,8 +108,9 @@ a {
 }
 
 .giftcontainer {
-    min-width: 400px;
+    min-width: 50px;
     max-height: calc(100vh - 240px);
+    /* Estilo del contenedor de regalos */
 }
 
 @media (orientation: portrait) {
@@ -118,9 +119,11 @@ a {
     }
     .chatcontainer,
     .giftcontainer {
-        min-width: 100%;
-        max-width: 100%;
+        min-width: 50px;
+        max-width: 1000px;
+        max-height: 400px;
     }
+    /* Estilos para pantallas con relación de aspecto 1/1, 9/16 o 16/9 */
 }
 
 .miniprofilepicture {
@@ -129,9 +132,10 @@ a {
 }
 
 .gifticon {
-    height: 50px;
-    width: 50px;
+    height: 100px;
+    width: 100px;
     margin-right: 10px;
+    /* Estilo de los iconos de regalo */
 }
 
 body.theme-dark {
