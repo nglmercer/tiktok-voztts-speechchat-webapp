@@ -59,9 +59,21 @@ async function onMessage(channel, tags, msg, self) {
 
     if (CHANNEL_BLACKLIST.some(ch => tags.username == ch))
         return console.log('ignorado el mensaje de,', tags.username);
-    const txt = `${tags.username}: ${msg}`;
-    console.log('valor:', txt);
-    insertText(txt);
+    const usernameElement = document.createElement('span');
+    usernameElement.classList.add('username');
+    usernameElement.innerText = tags.username;
+
+    const messageElement = document.createElement('span');
+    messageElement.classList.add('message');
+    messageElement.innerText = msg;
+
+    const txtbox = document.createElement('div');
+    txtbox.appendChild(usernameElement);
+    txtbox.appendChild(document.createTextNode(': '));
+    txtbox.appendChild(messageElement);
+
+    console.log('valor:', txtbox.innerHTML);
+    insertText(txtbox);
 
     //*
     if (!voice) {
@@ -77,7 +89,7 @@ async function onMessage(channel, tags, msg, self) {
                     return pronoun;
                 }
             });
-        if (pronoun && FEM_PRONOUNS.some(g => g == pronoun)) voice = voiceSelect.value
+        if (pronoun && FEM_PRONOUNS.some(g => g == pronoun)) voice = voiceSelect.value;
     }
     //*/
     if (lastUsername !== tags.username) {
@@ -88,8 +100,13 @@ async function onMessage(channel, tags, msg, self) {
     }
 }
 
-// Función para cambiar de canal
-
+function insertText(txt) {
+    add(document.createElement('br'));
+    add(txt);
+    Array.from(chatbox.children)
+        .slice(maxMsgInChat, Infinity)
+        .forEach(e => e.remove());
+}
 // Función para inicializar la aplicación
 window.onload = async function() {
     audio = document.getElementById("audio");
